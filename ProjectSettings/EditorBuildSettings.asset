@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Title.unity
+    guid: c4e06566a9d0af441b4f4ba73aa250b3
+  - enabled: 1
+    path: Assets/Scenes/DifficultySelect.unity
+    guid: d4d8a81809b96f141a480340b1b8cf8e
+  - enabled: 1
+    path: Assets/Scenes/Calibration.unity
+    guid: d83d65c732828864d886a6d58097d910
+  - enabled: 1
+    path: Assets/Scenes/Gameplay.unity
+    guid: 4c291219801b2fe4fab736c9ff305ee7
+  - enabled: 1
+    path: Assets/Scenes/TherapistMonitor.unity
+    guid: 8d4869c6b8598124ba15464da1b82f82
+  m_configObjects: {}
