@@ -26,6 +26,8 @@ public static class FontAndStyleSetup
     private const string PanelBg     = "Assets/Space_Exploration_GUI_Kit/Background_Images/large/background-overlay-large.png";
     private const string HomeBg      = "Assets/Space_Exploration_GUI_Kit/Background_Images/large/home-background-large.png";
 
+    private const string Galmuri11Asset = "Assets/Galmuri-v2.40.3/Galmuri11.asset";
+
     private static readonly string[] SceneNames =
         { "Title", "DifficultySelect", "Calibration", "Gameplay", "TherapistMonitor" };
 
@@ -263,6 +265,68 @@ public static class FontAndStyleSetup
         rt.offsetMax = Vector2.zero;
 
         EditorUtility.SetDirty(bgGO);
+    }
+
+    // ─────────────────────────────────────────────────────
+    // STEP 3: SubText에 적용된 폰트를 모든 씬 텍스트에 일괄 적용
+    // ─────────────────────────────────────────────────────
+    [MenuItem("Tools/별자리잇기/3. Apply Font From SubText")]
+    public static void ApplyFontFromSubText()
+    {
+        // 1. 어느 씬에서든 "SubText" 오브젝트의 폰트를 읽어온다
+        TMP_FontAsset targetFont = null;
+        string foundIn = null;
+
+        foreach (var sceneName in SceneNames)
+        {
+            string path = $"Assets/Scenes/{sceneName}.unity";
+            if (!File.Exists(path)) continue;
+
+            EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+
+            foreach (var tmp in Object.FindObjectsOfType<TextMeshProUGUI>(true))
+            {
+                if (tmp.gameObject.name == "SubText" && tmp.font != null)
+                {
+                    targetFont = tmp.font;
+                    foundIn = sceneName;
+                    break;
+                }
+            }
+            if (targetFont != null) break;
+        }
+
+        if (targetFont == null)
+        {
+            EditorUtility.DisplayDialog("오류", "'SubText' 오브젝트 또는 폰트를 찾을 수 없습니다.", "확인");
+            return;
+        }
+
+        Debug.Log($"[FontCopy] '{targetFont.name}' 폰트를 {foundIn}의 SubText에서 발견. 전체 적용 시작.");
+
+        // 2. 모든 씬에 동일 폰트 적용
+        int updated = 0;
+        foreach (var sceneName in SceneNames)
+        {
+            string path = $"Assets/Scenes/{sceneName}.unity";
+            if (!File.Exists(path)) continue;
+
+            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+
+            foreach (var tmp in Object.FindObjectsOfType<TextMeshProUGUI>(true))
+            {
+                tmp.font = targetFont;
+                EditorUtility.SetDirty(tmp);
+            }
+
+            EditorSceneManager.SaveScene(scene);
+            updated++;
+            Debug.Log($"[FontCopy] {sceneName} 적용 완료");
+        }
+
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[FontCopy] {updated}개 씬 폰트 교체 완료: {targetFont.name}");
+        EditorUtility.DisplayDialog("완료", $"'{targetFont.name}' 폰트를 {updated}개 씬 전체에 적용 완료.", "확인");
     }
 
     static Sprite LoadSprite(string path)
