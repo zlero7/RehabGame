@@ -14,7 +14,10 @@ public class ResultScreen : MonoBehaviour
 
     void Awake()
     {
-        if (panel != null) panel.SetActive(false);
+        // 주의: 이 컴포넌트는 panel(ResultPanel) 오브젝트 자신에 붙어있고, 씬에서 비활성 상태로 시작한다.
+        // 따라서 Awake()는 씬 로드 시점이 아니라 Display()가 SetActive(true)를 호출하는 "첫 표시 순간"에 실행된다.
+        // 여기서 panel.SetActive(false)를 호출하면 방금 켠 패널을 즉시 다시 꺼버리므로 절대 넣으면 안 된다.
+        // (초기 숨김 상태는 씬에 저장된 비활성 상태가 보장한다.)
 
         if (retryButton != null)
             retryButton.onClick.AddListener(() => GameManager.Instance?.StartGameplay());

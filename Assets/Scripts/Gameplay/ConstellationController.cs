@@ -13,6 +13,11 @@ public class ConstellationController : MonoBehaviour
     private IGameMode currentMode;
     private Vector2 lastCursorWorldPos;
 
+    // 커서가 활성 별의 judgeRadius 밖에 있었던 적이 최소 한 번은 있어야 연결을 허용한다.
+    // 이게 없으면 게임 시작 시 커서 시작 위치(화면 중앙)가 우연히 별의 판정 반경 안에 들어오는 경우
+    // 플레이어가 전혀 움직이지 않아도 별이 즉시(그리고 연쇄적으로) 연결되어 버린다.
+    private bool targetArmed = false;
+
     private DifficultyTier currentTier;
     private GameModeType currentModeType;
 
@@ -45,6 +50,7 @@ public class ConstellationController : MonoBehaviour
 
         nodes[0].SetState(NodeState.Active);
         lastCursorWorldPos = GetTransformedCursorPos();
+        targetArmed = Vector2.Distance(lastCursorWorldPos, nodes[0].WorldPosition) > judgeRadius;
 
         currentMode?.OnModeStart();
 
@@ -62,9 +68,12 @@ public class ConstellationController : MonoBehaviour
         Vector2 cursorWorldPos = GetTransformedCursorPos();
         StarNode target = nodes[currentIndex];
 
+        if (!targetArmed && Vector2.Distance(cursorWorldPos, target.WorldPosition) > judgeRadius)
+            targetArmed = true;
+
         float dist = DistancePointToSegment(target.WorldPosition, lastCursorWorldPos, cursorWorldPos);
 
-        if (dist <= judgeRadius)
+        if (targetArmed && dist <= judgeRadius)
             ConnectNode(target);
 
         if (VirtualCursor.Instance != null)
@@ -109,7 +118,10 @@ public class ConstellationController : MonoBehaviour
         if (currentIndex >= nodes.Count)
             OnConstellationComplete();
         else
+        {
             nodes[currentIndex].SetState(NodeState.Active);
+            targetArmed = Vector2.Distance(lastCursorWorldPos, nodes[currentIndex].WorldPosition) > judgeRadius;
+        }
     }
 
     private void OnConstellationComplete()

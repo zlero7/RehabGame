@@ -17,8 +17,7 @@ public class TitleController : MonoBehaviour
 
     private void OnStartClicked()
     {
-        if (GameManager.Instance != null)
-            GameManager.Instance.GoToDifficultySelect();
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Calibration");
     }
 
     private void OnTherapistClicked()

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class GameplaySceneController : MonoBehaviour
 {
+    public static GameplaySceneController Instance { get; private set; }
+
     [SerializeField] private GameObject starNodePrefab;
     [SerializeField] private Transform starParent;
     [SerializeField] private ConstellationController constellationController;
@@ -14,7 +16,13 @@ public class GameplaySceneController : MonoBehaviour
     [SerializeField] private float defaultPlayAreaHalfX = 5.5f;
     [SerializeField] private float defaultPlayAreaHalfY = 3.5f;
 
+    // 활성(1.3배) 상태 별의 지름(콜라이더 반경 0.5 * 프리팹 스케일 0.35 * 1.3 ≈ 0.23 → 지름 ≈ 0.45)보다
+    // 충분히 크게 잡은 최소 간격. 캘리브레이션 값이 작아 패턴이 눌리면서 별끼리 겹치는 것을 방지한다.
+    [SerializeField] private float minStarSpacing = 0.9f;
+
     private List<StarNode> spawnedNodes = new List<StarNode>();
+
+    void Awake() => Instance = this;
 
     void Start()
     {
@@ -24,7 +32,7 @@ public class GameplaySceneController : MonoBehaviour
         if (hudController == null)
             hudController = FindObjectOfType<HUDController>();
         if (resultScreen == null)
-            resultScreen = FindObjectOfType<ResultScreen>();
+            resultScreen = FindObjectOfType<ResultScreen>(true);
         if (VirtualCursor.Instance != null && playAreaRect != null)
             VirtualCursor.Instance.SetPlayAreaBounds(playAreaRect);
 
@@ -78,8 +86,29 @@ public class GameplaySceneController : MonoBehaviour
         {
             halfX = ROMCalibrator.Instance.patientMaxReachX * coverageRatio;
             halfY = ROMCalibrator.Instance.patientMaxReachY * coverageRatio;
-            ROMCalibrator.Instance.ApplyToVirtualCursor(coverageRatio);
         }
+
+        // 별 사이 최소 간격 보장 — 캘리브레이션 값이 작으면 패턴이 눌려서 별끼리 겹칠 수 있으므로,
+        // 패턴 모양(halfX:halfY 비율)은 유지한 채 가장 가까운 두 별의 간격이 minStarSpacing 이상이 되도록 균등 확대한다.
+        float minPairDist = float.MaxValue;
+        for (int i = 0; i < pattern.starPositions.Count; i++)
+        {
+            for (int j = i + 1; j < pattern.starPositions.Count; j++)
+            {
+                Vector2 diff = pattern.starPositions[i] - pattern.starPositions[j];
+                float dist = new Vector2(diff.x * halfX, diff.y * halfY).magnitude;
+                if (dist < minPairDist) minPairDist = dist;
+            }
+        }
+        if (minPairDist > 0.0001f && minPairDist < minStarSpacing)
+        {
+            float scaleUp = minStarSpacing / minPairDist;
+            halfX *= scaleUp;
+            halfY *= scaleUp;
+        }
+
+        // 측정된 커버리지 비율에 맞춰 실제 커서 감도를 반영
+        ROMCalibrator.Instance?.ApplyToVirtualCursor(coverageRatio);
 
         GameObject prefabToUse = starNodePrefab != null
             ? starNodePrefab

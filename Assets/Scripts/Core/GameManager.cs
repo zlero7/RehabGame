@@ -59,7 +59,6 @@ public class GameManager : MonoBehaviour
     public void OnConstellationCompleted(SessionResult result)
     {
         lastResult = result;
-        var sceneController = FindObjectOfType<GameplaySceneController>();
-        sceneController?.ShowResult(result);
+        GameplaySceneController.Instance?.ShowResult(result);
     }
 }

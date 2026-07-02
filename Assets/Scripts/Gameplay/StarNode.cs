@@ -14,11 +14,13 @@ public class StarNode : MonoBehaviour
     public Vector2 WorldPosition => (Vector2)transform.position;
 
     private NodeState currentState = NodeState.Idle;
+    private Vector3 baseScale;
 
     void Awake()
     {
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
+        baseScale = transform.localScale;
     }
 
     public void SetState(NodeState state)
@@ -50,6 +52,6 @@ public class StarNode : MonoBehaviour
         };
 
         float scale = state == NodeState.Active ? 1.3f : 1f;
-        transform.localScale = Vector3.one * scale;
+        transform.localScale = baseScale * scale;
     }
 }

@@ -24,3 +24,8 @@ Thumbs.db
 
 # Crash reports
 sysinfo.txt
+
+# Project local
+StarConnect.zip
+Screenshots/
+.claude/
